@@ -13,12 +13,13 @@ def browse_file():
 
 def download_videos():
     filepath = entry_filepath.get()
+    quality = quality_var.get()
     if not filepath:
         messagebox.showerror("Error", "Please select an Excel file")
         return
 
     try:
-        download_thread = downloader.start_download(filepath)
+        download_thread = downloader.start_download(filepath, quality)
         update_progress(download_thread)
     except Exception as e:
         messagebox.showerror("Error", str(e))
@@ -45,18 +46,27 @@ entry_filepath.grid(row=0, column=1, padx=10, pady=10)
 button_browse = tk.Button(root, text="Browse", command=browse_file)
 button_browse.grid(row=0, column=2, padx=10, pady=10)
 
+# Create and place the quality selection widgets
+label_quality = tk.Label(root, text="Select video quality:")
+label_quality.grid(row=1, column=0, padx=10, pady=10)
+
+quality_var = tk.StringVar(value="highest")
+quality_options = ["highest", "lowest", "720p", "480p", "360p"]
+dropdown_quality = tk.OptionMenu(root, quality_var, *quality_options)
+dropdown_quality.grid(row=1, column=1, padx=10, pady=10)
+
 # Create and place the download button
 button_download = tk.Button(root, text="Download Videos", command=download_videos)
-button_download.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
+button_download.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
 
 # Create progress labels
 current_video_progress = tk.StringVar()
 label_current_progress = tk.Label(root, textvariable=current_video_progress)
-label_current_progress.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+label_current_progress.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
 
 overall_progress = tk.StringVar()
 label_overall_progress = tk.Label(root, textvariable=overall_progress)
-label_overall_progress.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
+label_overall_progress.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
 
 # Initialize progress
 current_video_progress.set("Current video: 0%")
