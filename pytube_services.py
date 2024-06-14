@@ -33,24 +33,36 @@ class VideoDownloader:
         except Exception as e:
             raise ValueError(f"Could not read the file: {e}")
 
-    def download_video(self, name, link, output_path="downloads"):
+    def download_video(self, name, link, quality, output_path="downloads"):
         try:
             self.current_video = name
             yt = YouTube(link, on_progress_callback=self.progress_callback, on_complete_callback=self.complete_callback)
-            stream = yt.streams.get_highest_resolution()
-            stream.download(output_path=output_path, filename=name)
+            
+            if quality == "highest":
+                stream = yt.streams.get_highest_resolution()
+            elif quality == "lowest":
+                stream = yt.streams.get_lowest_resolution()
+            else:
+                # Try to get the stream with the specified resolution
+                stream = yt.streams.filter(res=quality).first()
+                if not stream:
+                    # If the specified resolution is not found, fall back to the highest resolution
+                    stream = yt.streams.get_highest_resolution()
+            
+            # Ensure the file is saved with an .mp4 extension
+            stream.download(output_path=output_path, filename=f"{name}.mp4")
         except Exception as e:
             print(f"Failed to download {name}: {e}")
             raise e
 
-    def download_videos_from_excel(self, filepath, output_path="downloads"):
+    def download_videos_from_excel(self, filepath, quality, output_path="downloads"):
         df = self.read_excel(filepath)
         self.total_videos = len(df)
         self.downloaded_videos = 0
         for index, row in df.iterrows():
-            self.download_video(row["Name"], row["Link"], output_path)
+            self.download_video(row["Name"], row["Link"], quality, output_path)
 
-    def start_download(self, filepath, output_path="downloads"):
-        thread = threading.Thread(target=self.download_videos_from_excel, args=(filepath, output_path))
+    def start_download(self, filepath, quality, output_path="downloads"):
+        thread = threading.Thread(target=self.download_videos_from_excel, args=(filepath, quality, output_path))
         thread.start()
         return thread
